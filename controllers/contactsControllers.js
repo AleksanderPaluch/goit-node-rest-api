@@ -4,29 +4,40 @@ import {
   createContactSchema,
   updateContactSchema,
 } from "../schemas/contactsSchemas.js";
-// const jsonParser = express.json();
+import Contact from "../models/contacts.js";
 
 export const getAllContacts = async (req, res, next) => {
   try {
-    const contacts = await contactsService.listContacts();
+    const contacts = await Contact.find(); // {favorite: true}
     res.status(200).send(contacts);
   } catch (error) {
     next(error);
   }
+
+  // try {
+  //   const contacts = await contactsService.listContacts();
+  //   res.status(200).send(contacts);
+  // } catch (error) {
+  //   next(error);
+  // }
 };
 
 export const getOneContact = async (req, res, next) => {
-  try {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    const contact = await contactsService.getContactById(id);
-    if (!contact) {
+  try {
+    const contact = await Contact.findById(id);
+
+    if (contact === null) {
       throw HttpError(404);
     }
+  
     res.status(200).send(contact);
   } catch (error) {
     next(error);
   }
+
+
 };
 
 export const deleteContact = async (req, res, next) => {
@@ -37,6 +48,7 @@ export const deleteContact = async (req, res, next) => {
     if (!removedContact) {
       throw HttpError(404);
     }
+
     res.status(200).send(removedContact);
   } catch (error) {
     next(error);
@@ -49,6 +61,7 @@ export const createContact = async (req, res, next) => {
       name: req.body.name,
       email: req.body.email,
       phone: req.body.phone,
+      favorite: req.body.favorite,
     };
 
     const { error } = createContactSchema.validate(contact, {
@@ -57,8 +70,16 @@ export const createContact = async (req, res, next) => {
     if (error) {
       throw HttpError(400, error.message);
     }
-    const newContact = await contactsService.addContact(contact);
-    res.status(201).send(newContact);
+    try {
+      const newContact = await Contact.create(contact);
+
+      res.status(201).send(newContact);
+    } catch (error) {
+      throw HttpError(500, error.message);
+    }
+
+    // const newContact = await contactsService.addContact(contact);
+    // res.status(201).send(newContact);
   } catch (error) {
     next(error);
   }
