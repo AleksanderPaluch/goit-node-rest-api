@@ -17,9 +17,9 @@ contactsRouter.get("/:id", getOneContact);
 
 contactsRouter.delete("/:id", deleteContact);
 
-contactsRouter.post("/", JSONparser,  createContact);
+contactsRouter.post("/",  createContact);
 
-contactsRouter.put("/:id", JSONparser,  updateContact);
+contactsRouter.put("/:id", updateContact);
 
 contactsRouter.patch("/:id/favorite", updateFavorite);
 
