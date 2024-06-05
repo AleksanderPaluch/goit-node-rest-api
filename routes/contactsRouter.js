@@ -19,7 +19,7 @@ contactsRouter.delete("/:id", deleteContact);
 
 contactsRouter.post("/", JSONparser,  createContact);
 
-contactsRouter.put("/:id", JSONparser,  updateContact);
+contactsRouter.put("/:id", updateContact);
 
 contactsRouter.patch("/:id/favorite", updateFavorite);
 

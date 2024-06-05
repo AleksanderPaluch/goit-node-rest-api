@@ -22,7 +22,7 @@ export const getOneContact = async (req, res, next) => {
   try {
     const contact = await Contact.findById(id);
     if (!contact) {
-      throw HttpError(400, error.message);
+      throw HttpError(404);
     }
     return res.status(200).json(contact);
   } catch (error) {
