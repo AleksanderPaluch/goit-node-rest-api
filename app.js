@@ -1,11 +1,10 @@
-import "dotenv/config";
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
-import "./routes/db.js"
+import "./routes/db.js";
 
 import contactsRouter from "./routes/contactsRouter.js";
-import authRouter from "./routes/authRouter.js"
+import authRouter from "./routes/authRouter.js";
 
 const app = express();
 
