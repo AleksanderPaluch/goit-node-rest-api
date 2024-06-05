@@ -1,6 +1,9 @@
 import User from "../models/users.js";
 import HttpError from "../helpers/HttpError.js";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken"
+
+
 
 export const registerUser = async (req, res, next) => {
   try {
@@ -26,6 +29,8 @@ export const loginUser = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
+    
+
     if (user === null) {
       throw HttpError(401);
     }
@@ -36,7 +41,11 @@ export const loginUser = async (req, res, next) => {
       throw HttpError(401);
     }
 
-    res.status(200).send({ message: "good login", token: "TOKEN" });
+    const JWT_SECRET = process.env.JWT_SECRET;
+
+    const token = jwt.sign({id: user._id, email: user.email}, JWT_SECRET, { expiresIn: 60 * 60 })
+
+    res.status(200).send({ message: "good login", token});
   } catch (error) {
     next(error);
   }

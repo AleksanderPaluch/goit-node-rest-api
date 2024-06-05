@@ -6,8 +6,11 @@ import {
 import Contact from "../models/contacts.js";
 
 export const getAllContacts = async (req, res, next) => {
+
+  
+
   try {
-    const contacts = await Contact.find(); // {favorite: true}
+    const contacts = await Contact.find({owner: req.user.id}); // {favorite: true}
     res.status(200).send(contacts);
   } catch (error) {
     next(error);
@@ -21,6 +24,17 @@ export const getOneContact = async (req, res, next) => {
     if (!contact) {
       throw HttpError(404);
     }
+
+    console.log(contact.owner.toString());
+    console.log(req.user.id);
+
+    if (contact.owner.toString() !== req.user.id) {
+      throw HttpError(403);
+     }
+
+
+
+
     return res.status(200).json(contact);
   } catch (error) {
     next(error);
@@ -46,6 +60,7 @@ export const createContact = async (req, res, next) => {
       email: req.body.email,
       phone: req.body.phone,
       favorite: req.body.favorite,
+      owner: req.user.id
     };
 
     const { error } = createContactSchema.validate(contact, {
