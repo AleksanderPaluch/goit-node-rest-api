@@ -1,4 +1,3 @@
-import contactsService from "../services/contactsServices.js";
 import HttpError from "../helpers/HttpError.js";
 import {
   createContactSchema,
@@ -13,8 +12,6 @@ export const getAllContacts = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-
-
 };
 
 export const getOneContact = async (req, res, next) => {
@@ -64,7 +61,6 @@ export const createContact = async (req, res, next) => {
     } catch (error) {
       throw HttpError(500, error.message);
     }
-
   } catch (error) {
     next(error);
   }
@@ -98,7 +94,6 @@ export const updateContact = async (req, res, next) => {
     next(error);
   }
 };
-
 
 export const updateFavorite = async (req, res, next) => {
   const { id } = req.params;

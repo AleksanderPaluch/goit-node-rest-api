@@ -9,7 +9,7 @@ import {
 } from "../controllers/contactsControllers.js";
 
 const contactsRouter = express.Router();
-const JSONparser = express.json()
+// const JSONparser = express.json()
 
 contactsRouter.get("/", getAllContacts);
 
