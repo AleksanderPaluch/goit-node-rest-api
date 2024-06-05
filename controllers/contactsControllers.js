@@ -22,24 +22,21 @@ export const getOneContact = async (req, res, next) => {
   try {
     const contact = await Contact.findById(id);
     if (!contact) {
-      throw HttpError(400, error.message);
+      throw HttpError(404);
     }
     return res.status(200).json(contact);
   } catch (error) {
     next(error);
   }
 };
-
 export const deleteContact = async (req, res, next) => {
+  const { id } = req.params;
   try {
-    const { id } = req.params;
-
-    const removedContact = await contactsService.removeContact(id);
+    const removedContact = await Contact.findByIdAndDelete(id);
     if (!removedContact) {
-      throw HttpError(400, error.message);
+      throw HttpError(404);
     }
-
-    res.status(200).send(removedContact);
+    return res.status(200).json(removedContact);
   } catch (error) {
     next(error);
   }
@@ -95,7 +92,7 @@ export const updateContact = async (req, res, next) => {
     if (error) {
       throw HttpError(400, error.message);
     }
-    const updatedContact = await contactsService.updateContact(id, value);
+    const updatedContact = await Contact.findByIdAndUpdate(id, value);
     res.status(201).send(updatedContact);
   } catch (error) {
     next(error);
