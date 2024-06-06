@@ -8,19 +8,24 @@ export const registerUser = async (req, res, next) => {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-
-
+    
     if (user !== null) {
       throw HttpError(409, "Email in use");
     }
 
+    
+    
     const passwordHash = await bcrypt.hash(password, 10);
     await User.create({ email, password: passwordHash,  });
 
-    res.status(201).send({ user: {
-      email,
-      
-    } });
+    
+
+    res.status(201).send({
+      user: {
+        email,
+        "subscription": "starter"
+      },
+    });
   } catch (error) {
     next(error);
   }
@@ -49,12 +54,15 @@ export const loginUser = async (req, res, next) => {
 
     await User.findByIdAndUpdate(user._id, { token }, { new: true });
 
-    
+    const subscription = user.subscription;
 
-    res.status(200).send({ token, user: {
-      email,
-      
-    } });
+    res.status(200).send({
+      token,
+      user: {
+        email,
+        subscription,
+      },
+    });
   } catch (error) {
     next(error);
   }
@@ -62,11 +70,35 @@ export const loginUser = async (req, res, next) => {
 
 export const logoutUser = async (req, res, next) => {
   try {
-    const user = await User.findByIdAndUpdate(req.user.id, { token: null }, { new: true });
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { token: null },
+      { new: true }
+    );
     if (!user) {
       throw HttpError(401, "Not authorized");
     }
     res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const checkCurrentUser = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (user === null) {
+      throw HttpError(401);
+    }
+
+    const subscription = user.subscription;
+
+    res.status(200).send({
+      email,
+      subscription,
+    });
   } catch (error) {
     next(error);
   }
