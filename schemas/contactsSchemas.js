@@ -12,6 +12,7 @@ export const updateContactSchema = Joi.object({
   name: Joi.string().min(3),
   email: Joi.string().email(),
   phone: Joi.string(),
-  favorite: Joi.string()
-  
+  favorite: Joi.string(),
+  owner: Joi.string(),
+  _id: Joi.string()
 });

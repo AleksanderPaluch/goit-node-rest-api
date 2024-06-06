@@ -1,9 +1,7 @@
 import User from "../models/users.js";
 import HttpError from "../helpers/HttpError.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken"
-
-
+import jwt from "jsonwebtoken";
 
 export const registerUser = async (req, res, next) => {
   try {
@@ -11,14 +9,18 @@ export const registerUser = async (req, res, next) => {
 
     const user = await User.findOne({ email });
 
+
     if (user !== null) {
-      throw HttpError(409);
+      throw HttpError(409, "Email in use");
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    await User.create({ email, password: passwordHash });
+    await User.create({ email, password: passwordHash,  });
 
-    res.status(201).send({ message: "Registered successfully" });
+    res.status(201).send({ user: {
+      email,
+      
+    } });
   } catch (error) {
     next(error);
   }
@@ -29,23 +31,42 @@ export const loginUser = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
-    
-
     if (user === null) {
-      throw HttpError(401);
+      throw HttpError(401, "Email or password is wrong");
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (isMatch === false) {
-      throw HttpError(401);
+      throw HttpError(401, "Email or password is wrong");
     }
 
     const JWT_SECRET = process.env.JWT_SECRET;
 
-    const token = jwt.sign({id: user._id, email: user.email}, JWT_SECRET, { expiresIn: 60 * 60 })
+    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
+      expiresIn: 60 * 60,
+    });
 
-    res.status(200).send({ message: "good login", token});
+    await User.findByIdAndUpdate(user._id, { token }, { new: true });
+
+    
+
+    res.status(200).send({ token, user: {
+      email,
+      
+    } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logoutUser = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.user.id, { token: null }, { new: true });
+    if (!user) {
+      throw HttpError(401, "Not authorized");
+    }
+    res.status(204).end();
   } catch (error) {
     next(error);
   }
