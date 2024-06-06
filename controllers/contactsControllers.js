@@ -102,6 +102,17 @@ export const updateContact = async (req, res, next) => {
 
 export const updateFavorite = async (req, res, next) => {
   const { id } = req.params;
+  const { name, email, phone, favorite } = req.body;
+
+
+  console.log(typeof favorite);
+
+  if (!name && !email && !phone && typeof favorite !== "boolean") {
+    
+    throw HttpError(400, "Body must have one boolean field: favorite")
+    
+  }
+
   try {
     const updatedContact = await Contact.findByIdAndUpdate(id, req.body, {
       new: true,
@@ -115,3 +126,5 @@ export const updateFavorite = async (req, res, next) => {
     next(error);
   }
 };
+
+
