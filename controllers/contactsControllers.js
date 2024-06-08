@@ -7,6 +7,7 @@ import Contact from "../models/contacts.js";
 
 export const getAllContacts = async (req, res, next) => {
   try {
+    
     const contacts = await Contact.find({ owner: req.user.id }); // {favorite: true}
     res.status(200).send(contacts);
   } catch (error) {
