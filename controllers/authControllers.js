@@ -86,14 +86,13 @@ export const logoutUser = async (req, res, next) => {
 
 export const checkCurrentUser = async (req, res, next) => {
   try {
-    const { email } = req.body;
-    const user = await User.findOne({ email });
-
+    
+    const user = await User.findById(req.user.id);
     if (user === null) {
       throw HttpError(401);
     }
 
-    const subscription = user.subscription;
+    const { email, subscription } = user;
 
     res.status(200).send({
       email,
