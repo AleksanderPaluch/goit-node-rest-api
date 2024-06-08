@@ -105,8 +105,6 @@ export const updateFavorite = async (req, res, next) => {
   const { name, email, phone, favorite } = req.body;
 
 
-  console.log(typeof favorite);
-
   if (!name && !email && !phone && typeof favorite !== "boolean") {
     
     throw HttpError(400, "Body must have one boolean field: favorite")
