@@ -8,7 +8,6 @@ const userSchema = mongoose.Schema({
   email: {
     type: String,
     required: [true, "Email is required"],
-    
   },
   subscription: {
     type: String,
@@ -19,7 +18,10 @@ const userSchema = mongoose.Schema({
     type: String,
     default: null,
   },
+  avatarURL: {
+    type: String,
+    default: null,
+  },
 });
-
 
 export default mongoose.model("User", userSchema); // User => users

@@ -2,6 +2,9 @@ import User from "../models/users.js";
 import HttpError from "../helpers/HttpError.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import * as fs from "node:fs/promises"
+import path from "node:path";
+
 
 export const registerUser = async (req, res, next) => {
   try {
@@ -101,4 +104,20 @@ export const checkCurrentUser = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+
+export const changeAvatar = async (req, res, next) => {
+  try {
+    await fs.rename(req.file.path, path.resolve("public/avatars", req.file.filename))
+
+    const user = await User.findByIdAndUpdate(req.user.id, {avatarURL: req.file.filename}, {new: true})
+
+    res.send(user)
+  } catch (error) {
+    next(error)
+  }
+
+
+
 };
