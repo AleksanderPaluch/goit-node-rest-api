@@ -2,31 +2,37 @@ import User from "../models/users.js";
 import HttpError from "../helpers/HttpError.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import * as fs from "node:fs/promises"
+import * as fs from "node:fs/promises";
 import path from "node:path";
-
+import gravatar from "gravatar";
+import jimp from "jimp";
 
 export const registerUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-    
+
     if (user !== null) {
       throw HttpError(409, "Email in use");
     }
 
-    
-    
     const passwordHash = await bcrypt.hash(password, 10);
-    await User.create({ email, password: passwordHash,  });
+    const emailToLowerCase = email.toLowerCase();
+    const gravatarImg = gravatar.url(emailToLowerCase);
 
-    
+    await User.create({
+      email,
+      password: passwordHash,
+      avatarURL: `http:${gravatarImg}`,
+    });
 
     res.status(201).send({
       user: {
         email,
-        "subscription": "starter"
+        avatarURL: `http:${gravatarImg}`,
+        subscription: "starter",
+        
       },
     });
   } catch (error) {
@@ -89,7 +95,6 @@ export const logoutUser = async (req, res, next) => {
 
 export const checkCurrentUser = async (req, res, next) => {
   try {
-    
     const user = await User.findById(req.user.id);
     if (user === null) {
       throw HttpError(401);
@@ -106,18 +111,29 @@ export const checkCurrentUser = async (req, res, next) => {
   }
 };
 
-
 export const changeAvatar = async (req, res, next) => {
   try {
-    await fs.rename(req.file.path, path.resolve("public/avatars", req.file.filename))
+    if (!req.file) {
+      throw HttpError(400, "File not found");
+    }
 
-    const user = await User.findByIdAndUpdate(req.user.id, {avatarURL: req.file.filename}, {new: true})
+    const publicDirectory = path.resolve("public/avatars", req.file.filename);
 
-    res.send(user)
+    await fs.rename(
+      req.file.path, publicDirectory
+    );
+
+    const avatar = await jimp.read(publicDirectory);
+    await avatar.resize(250, 250).writeAsync(publicDirectory)
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { avatarURL: `/avatars/${req.file.filename}` },
+      { new: true }
+    );
+
+    res.send(user);
   } catch (error) {
-    next(error)
+    next(error);
   }
-
-
-
 };
