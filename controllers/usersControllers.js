@@ -132,7 +132,7 @@ export const changeAvatar = async (req, res, next) => {
       { new: true }
     );
 
-    res.send(user);
+    res.send({avatarURL: `/avatars/${req.file.filename}`});
   } catch (error) {
     next(error);
   }
