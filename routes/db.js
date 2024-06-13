@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 
+
 const DB_URI = process.env.DB_URI;
+
 
 
 mongoose
@@ -10,3 +12,5 @@ mongoose
     console.error("Database connection failure:", error)
     process.exit(1)
 });
+
+
