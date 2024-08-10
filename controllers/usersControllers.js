@@ -29,7 +29,7 @@ export const registerUser = async (req, res, next) => {
       from: "aleksander.paluc@wp.pl",
       subject: "Confirm your account!",
       html: `To confirm your email,please click on the <a href="http://localhost:3000/users/verify/${verificationToken}">link</a>`,
-      text: `To confirm your email please open the link http://localhost:3000/users/verify/${verificationToken}`,
+      // html: `To confirm your email,please click on the <a href="http://localhost:5173/users/verify/${verificationToken}">link</a>`,
     });
 
     await User.create({
