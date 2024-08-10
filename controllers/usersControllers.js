@@ -16,7 +16,7 @@ export const registerUser = async (req, res, next) => {
     const user = await User.findOne({ email });
 
     if (user !== null) {
-      throw HttpError(409, "Email in use");
+      throw HttpError(409, "The email address you’ve entered is already in use");
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -24,13 +24,87 @@ export const registerUser = async (req, res, next) => {
     const gravatarImg = gravatar.url(emailToLowerCase);
     const verificationToken = crypto.randomUUID();
 
+
+
     await Mail.sendMail({
-      to: emailToLowerCase,
-      from: "aleksander.paluc@wp.pl",
-      subject: "Confirm your account!",
-      html: `To confirm your email,please click on the <a href="http://localhost:3000/users/verify/${verificationToken}">link</a>`,
-      // html: `To confirm your email,please click on the <a href="http://localhost:5173/users/verify/${verificationToken}">link</a>`,
-    });
+  to: emailToLowerCase,
+  from: "aleksander.paluc@wp.pl",
+  subject: "Confirm your account!",
+  html: `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f4f4f4;
+          margin: 0;
+          padding: 0;
+        }
+        .container {
+          max-width: 600px;
+          margin: 0 auto;
+          background-color: #ffffff;
+          padding: 20px;
+          border-radius: 8px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+          background-color: #4CAF50;
+          color: #ffffff;
+          padding: 10px 0;
+          text-align: center;
+          border-radius: 8px 8px 0 0;
+        }
+        .content {
+          margin: 20px 0;
+          line-height: 1.6;
+        }
+        .button {
+          display: inline-block;
+          padding: 10px 20px;
+          font-size: 16px;
+          color: #ffffff;
+          background-color: #4CAF50;
+          text-decoration: none;
+          border-radius: 5px;
+        }
+        .footer {
+          margin-top: 20px;
+          text-align: center;
+          color: #777777;
+          font-size: 12px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Confirm Your Account</h1>
+        </div>
+        <div class="content">
+          <p>Hello,</p>
+          <p>Thank you for registering with our service. Please click the button below to confirm your email address:</p>
+          <p><a href="http://localhost:3000/users/verify/${verificationToken}" class="button">Confirm Email</a></p>
+          <p>If you did not create an account, please ignore this email.</p>
+        </div>
+        <div class="footer">
+          <p>&copy; 2024 Your Company. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `,
+});
+    // await Mail.sendMail({
+    //   to: emailToLowerCase,
+    //   from: "aleksander.paluc@wp.pl",
+    //   subject: "Confirm your account!",
+    //   html: `To confirm your email,please click on the <a href="http://localhost:3000/users/verify/${verificationToken}">link</a>`,
+    //   // html: `To confirm your email,please click on the <a href="http://localhost:5173/users/verify/${verificationToken}">link</a>`,
+    // });
 
     await User.create({
       email,
@@ -154,24 +228,22 @@ export const changeAvatar = async (req, res, next) => {
 export const verifyEmail = async (req, res, next) => {
   try {
     const { verificationToken } = req.params;
-    console.log(verificationToken);
 
-   const user = await User.findOne({verificationToken})
-   
-   if (!user) {
-    return res.status(404).send({message: "user not found"})
-   }
+    const user = await User.findOne({ verificationToken });
 
-   await User.findByIdAndUpdate(user._id, {verify: true, verificationToken: null})
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
 
-   res.status(200).json({ message: "Email confirm successfully" });
-   
+    await User.findByIdAndUpdate(user._id, { verify: true, verificationToken: null });
+
+    res.redirect('http://localhost:5173/signin');
   } catch (error) {
     next(error);
   }
-
-  
 };
+
+
 
 
 export const resendVerify = async (req, res, next) => {
