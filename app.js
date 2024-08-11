@@ -14,9 +14,9 @@ app.use(morgan("tiny"));
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/contacts", auth, contactsRouter);
+app.use("/contacts", auth, contactsRouter);
 app.use("/api/users", usersRouter);
-app.use("/users", usersRouter);
+
 app.use("/avatars", express.static(path.resolve("public/avatars")))
 
 app.use((_, res) => {
@@ -25,7 +25,7 @@ app.use((_, res) => {
 
 app.use((err, req, res, next) => {
   const { status = 500, message = "Server error" } = err;
-  res.status(status).json({ message });
+  return res.status(status).json({ message });
 });
 
 app.listen(3000, () => {

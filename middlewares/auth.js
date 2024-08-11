@@ -11,7 +11,7 @@ export const auth = async (req, res, next) => {
   const [bearer, token] = authorizationHeader.split(" ", 2);
 
   if (bearer !== "Bearer" || !token) {
-    throw HttpError(401, "invalid token");
+    return next(HttpError(401, "invalid token"));
   }
 
   try {

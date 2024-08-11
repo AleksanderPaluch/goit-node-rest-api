@@ -87,11 +87,11 @@ export const registerUser = async (req, res, next) => {
         <div class="content">
           <p>Hello,</p>
           <p>Thank you for registering with our service. Please click the button below to confirm your email address:</p>
-          <p><a href="http://localhost:3000/users/verify/${verificationToken}" class="button">Confirm Email</a></p>
+          <p><a href="http://localhost:3000/api/users/verify/${verificationToken}" class="button">Confirm Email</a></p>
           <p>If you did not create an account, please ignore this email.</p>
         </div>
         <div class="footer">
-          <p>&copy; 2024 Your Company. All rights reserved.</p>
+          <p>&copy; 2024 AquaTrack. All rights reserved.</p>
         </div>
       </div>
     </body>
@@ -176,7 +176,7 @@ export const logoutUser = async (req, res, next) => {
     if (!user) {
       throw HttpError(401, "Not authorized");
     }
-    res.status(204).end();
+    return res.status(204).end();
   } catch (error) {
     next(error);
   }
