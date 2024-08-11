@@ -16,7 +16,10 @@ export const registerUser = async (req, res, next) => {
     const user = await User.findOne({ email });
 
     if (user !== null) {
-      throw HttpError(409, "The email address you’ve entered is already in use");
+      throw HttpError(
+        409,
+        "The email address you’ve entered is already in use"
+      );
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -24,13 +27,11 @@ export const registerUser = async (req, res, next) => {
     const gravatarImg = gravatar.url(emailToLowerCase);
     const verificationToken = crypto.randomUUID();
 
-
-
     await Mail.sendMail({
-  to: emailToLowerCase,
-  from: "aleksander.paluc@wp.pl",
-  subject: "Confirm your account!",
-  html: `
+      to: emailToLowerCase,
+      from: "AquaTrack.com",
+      subject: "Confirm your account!",
+      html: `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -97,7 +98,7 @@ export const registerUser = async (req, res, next) => {
     </body>
     </html>
   `,
-});
+    });
     // await Mail.sendMail({
     //   to: emailToLowerCase,
     //   from: "aleksander.paluc@wp.pl",
@@ -235,28 +236,26 @@ export const verifyEmail = async (req, res, next) => {
       return res.status(404).send({ message: "User not found" });
     }
 
-    await User.findByIdAndUpdate(user._id, { verify: true, verificationToken: null });
+    await User.findByIdAndUpdate(user._id, {
+      verify: true,
+      verificationToken: null,
+    });
 
-    res.redirect('http://localhost:5173/signin');
+    res.redirect("http://localhost:5173/signin");
   } catch (error) {
     next(error);
   }
 };
 
-
-
-
 export const resendVerify = async (req, res, next) => {
- 
   try {
-
     const { email } = req.body;
 
     if (!email) {
-      res.status(400).send({"message":"missing required field email"})
+      res.status(400).send({ message: "missing required field email" });
     }
 
-    const verificationToken = crypto.randomUUID()
+    const verificationToken = crypto.randomUUID();
 
     const user = await User.findOneAndUpdate(
       { email },
@@ -271,7 +270,7 @@ export const resendVerify = async (req, res, next) => {
     if (user.verify == true) {
       return next(HttpError(400, "Verification has already been passed"));
     }
-  
+
     await Mail.sendMail({
       to: email,
       from: "aleksander.paluc@wp.pl",
@@ -281,10 +280,140 @@ export const resendVerify = async (req, res, next) => {
     });
 
     res.status(201).json({ message: " Verification email sent" });
-    
   } catch (error) {
-    next(error)
+    next(error);
   }
- 
-  
+};
+
+export const sendResetMail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      throw HttpError(
+        404,
+        `Password reset requested for non-existent email: ${email}`
+      );
+    }
+    const emailToLowerCase = email.toLowerCase();
+    const resetToken = crypto.randomUUID();
+
+    await User.findByIdAndUpdate(
+      user._id,
+      {
+        resetToken,
+      },
+      { new: true }
+    );
+
+    await Mail.sendMail({
+      to: emailToLowerCase,
+      from: "AquaTrack.com",
+      subject: "Reset Your Password",
+      html: `
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      background-color: #4CAF50;
+      color: #ffffff;
+      padding: 10px 0;
+      text-align: center;
+      border-radius: 8px 8px 0 0;
+    }
+    .content {
+      margin: 20px 0;
+      line-height: 1.6;
+    }
+    .button {
+      display: inline-block;
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #ffffff;
+      background-color: #4CAF50;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      color: #777777;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Reset Your Password</h1>
+    </div>
+    <div class="content">
+      <p>Hello,</p>
+      <p>We received a request to reset the password for your account. Please click the button below to reset your password:</p>
+      <p><a href="http://localhost:5173/reset-password/${resetToken}" class="button">Reset Password</a></p>
+      <p>If you did not request a password reset, please ignore this email.</p>
+    </div>
+    <div class="footer">
+      <p>&copy; 2024 AquaTrack. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`,
+    });
+
+    res.status(200).json({ message: " reset email sent" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const changePassword = async (req, res, next) => {
+  try {
+    const { resetToken, password } = req.body;
+
+    // Перевірка наявності всіх необхідних полів
+    if (!resetToken || !password) {
+      return res.status(400).send({ message: "Reset token and password are required" });
+    }
+
+    // Пошук користувача за токеном
+    const user = await User.findOne({ resetToken });
+
+    if (!user) {
+      return res.status(404).send({ message: "Invalid or expired reset token" });
+    }
+
+    // Хешування нового пароля
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // Оновлення пароля та видалення токена
+    await User.findByIdAndUpdate(
+      user._id,
+      { password: passwordHash, resetToken: null },
+      { new: true }
+    );
+
+    res.status(200).json({ message: "Password has been successfully changed" });
+  } catch (error) {
+    console.error("Error changing password:", error); // Логування помилки
+    next(error); // Передача помилки в middleware обробки помилок
+  }
 };

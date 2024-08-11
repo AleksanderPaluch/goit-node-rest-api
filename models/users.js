@@ -30,6 +30,11 @@ const userSchema = mongoose.Schema({
     type: String,
     required: [true, 'Verify token is required'],
   },
+  resetToken: {
+    type: String,
+    default: null,
+    
+  },
 });
 
 export default mongoose.model("User", userSchema); // User => users
