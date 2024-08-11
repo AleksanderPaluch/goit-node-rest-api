@@ -141,7 +141,7 @@ export const loginUser = async (req, res, next) => {
     }
 
     if (user.verify === false) {
-      res.status(401).send({ message: "please verify your email" });
+      return res.status(401).send({ message: "Please verify your email" });
     }
 
     const JWT_SECRET = process.env.JWT_SECRET;
