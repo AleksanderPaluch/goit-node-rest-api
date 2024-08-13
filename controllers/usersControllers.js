@@ -154,9 +154,10 @@ export const loginUser = async (req, res, next) => {
 
     const payload = { id: user._id, email: user.email };
 
-    const { token, refreshToken } = await tokenServices.generateToken(payload);
-    await tokenServices.saveToken(user._id, refreshToken);
+    const token = await tokenServices.generateAccessToken(payload);
+    const refreshToken = await tokenServices.generateRefreshToken(payload);
 
+    await tokenServices.saveToken(user._id, refreshToken);
     await User.findByIdAndUpdate(user._id, { token }, { new: true });
 
     return res
@@ -164,7 +165,6 @@ export const loginUser = async (req, res, next) => {
       .status(200)
       .send({ token, user: { email: user.email } });
   } catch (error) {
-    console.log(error);
     next(error);
   }
 };
@@ -189,33 +189,38 @@ export const logoutUser = async (req, res, next) => {
   }
 };
 
-
-
 export const refreshAccess = async (req, res, next) => {
-  const { refreshToken } = req.cookies;
+  try {
+    const { refreshToken } = req.cookies;
+    console.log(refreshToken);
 
+    if (!refreshToken) {
+      return res.status(401).json({ message: "Refresh token not found" });
+    }
 
-  if (!refreshToken) {
-    return res.status(401).json({ message: 'Not authorized' });
+    const userData = tokenServices.validateRefreshToken(refreshToken);
+    const tokenFromDb = await tokenServices.findToken(refreshToken);
+
+    if (!userData || !tokenFromDb) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const payload = { id: userData.id, email: userData.email };
+    const newAccessToken = tokenServices.generateAccessToken(payload);
+
+    // Оновлюємо тільки Access Token в базі даних
+    await User.findByIdAndUpdate(
+      userData.id,
+      { token: newAccessToken },
+      { new: true }
+    );
+
+    return res.status(200).json({ token: newAccessToken });
+  } catch (error) {
+    console.error("Error during token refresh:", error);
+    next(error);
   }
-
-  const userData = await tokenServices.refresh(refreshToken);
-  console.log('userData after: ', userData);
-
-  
-  if(!userData) {
-    return res
-    .clearCookie('refreshToken')
-    .status(401)
-    .json({ message: 'Not authorized' });
-  }
-
-  return res
-  .cookie('refreshToken', userData.refreshToken, cookieConfig)
-  .status(200)
-  .send({ token: userData.token, user: { email: userData.email } });
 };
-
 
 export const checkCurrentUser = async (req, res, next) => {
   try {
