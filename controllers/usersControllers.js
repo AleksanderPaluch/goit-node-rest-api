@@ -1,20 +1,27 @@
 import User from "../models/users.js";
 import HttpError from "../helpers/HttpError.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import * as fs from "node:fs/promises";
+import * as tokenServices from "../services/token-services.js";
 import path from "node:path";
 import gravatar from "gravatar";
 import jimp from "jimp";
 import Mail from "../helpers/verifyEmail.js";
 import crypto from "node:crypto";
 
+const cookieConfig = {
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+  httpOnly: true,
+  // sameSite: "none",
+  // secure: true,
+  sameSite: "lax", // замінено на 'lax' для локальної розробки
+  secure: false, // змінено на false для локальної розробки без HTTPSs
+};
+
 export const registerUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-
     const user = await User.findOne({ email });
-
     if (user !== null) {
       throw HttpError(
         409,
@@ -118,7 +125,6 @@ export const registerUser = async (req, res, next) => {
       user: {
         email,
         avatarURL: `http:${gravatarImg}`,
-        subscription: "starter",
       },
     });
   } catch (error) {
@@ -129,6 +135,7 @@ export const registerUser = async (req, res, next) => {
 export const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+
     const user = await User.findOne({ email });
 
     if (user === null) {
@@ -145,43 +152,70 @@ export const loginUser = async (req, res, next) => {
       return res.status(401).send({ message: "Please verify your email" });
     }
 
-    const JWT_SECRET = process.env.JWT_SECRET;
+    const payload = { id: user._id, email: user.email };
 
-    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
-      expiresIn: 60 * 60,
-    });
+    const { token, refreshToken } = await tokenServices.generateToken(payload);
+    await tokenServices.saveToken(user._id, refreshToken);
 
     await User.findByIdAndUpdate(user._id, { token }, { new: true });
 
-    const subscription = user.subscription;
-
-    res.status(200).send({
-      token,
-      user: {
-        email,
-        subscription,
-      },
-    });
+    return res
+      .cookie("refreshToken", refreshToken, cookieConfig)
+      .status(200)
+      .send({ token, user: { email: user.email } });
   } catch (error) {
+    console.log(error);
     next(error);
   }
 };
 
 export const logoutUser = async (req, res, next) => {
+  const { refreshToken } = req.cookies;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh token not found" });
+  }
+
   try {
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { token: null },
-      { new: true }
-    );
-    if (!user) {
-      throw HttpError(401, "Not authorized");
-    }
+    await User.findByIdAndUpdate(req.user.id, { token: null }, { new: true });
+    await tokenServices.removeToken(refreshToken);
+
+    // Очищення куки та відповідь
+    res.clearCookie("refreshToken", { path: "/" });
     return res.status(204).end();
   } catch (error) {
+    console.log("error: ", error);
     next(error);
   }
 };
+
+
+
+export const refreshAccess = async (req, res, next) => {
+  const { refreshToken } = req.cookies;
+
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: 'Not authorized' });
+  }
+
+  const userData = await tokenServices.refresh(refreshToken);
+  console.log('userData after: ', userData);
+
+  
+  if(!userData) {
+    return res
+    .clearCookie('refreshToken')
+    .status(401)
+    .json({ message: 'Not authorized' });
+  }
+
+  return res
+  .cookie('refreshToken', userData.refreshToken, cookieConfig)
+  .status(200)
+  .send({ token: userData.token, user: { email: userData.email } });
+};
+
 
 export const checkCurrentUser = async (req, res, next) => {
   try {
@@ -190,11 +224,10 @@ export const checkCurrentUser = async (req, res, next) => {
       throw HttpError(401);
     }
 
-    const { email, subscription } = user;
+    const { email } = user;
 
     res.status(200).send({
       email,
-      subscription,
     });
   } catch (error) {
     next(error);
@@ -247,43 +280,43 @@ export const verifyEmail = async (req, res, next) => {
   }
 };
 
-export const resendVerify = async (req, res, next) => {
-  try {
-    const { email } = req.body;
+// export const resendVerify = async (req, res, next) => {
+//   try {
+//     const { email } = req.body;
 
-    if (!email) {
-      res.status(400).send({ message: "missing required field email" });
-    }
+//     if (!email) {
+//       res.status(400).send({ message: "missing required field email" });
+//     }
 
-    const verificationToken = crypto.randomUUID();
+//     const verificationToken = crypto.randomUUID();
 
-    const user = await User.findOneAndUpdate(
-      { email },
-      { verificationToken },
-      { new: true }
-    );
+//     const user = await User.findOneAndUpdate(
+//       { email },
+//       { verificationToken },
+//       { new: true }
+//     );
 
-    if (!user) {
-      return next(HttpError(404, "User not found"));
-    }
+//     if (!user) {
+//       return next(HttpError(404, "User not found"));
+//     }
 
-    if (user.verify == true) {
-      return next(HttpError(400, "Verification has already been passed"));
-    }
+//     if (user.verify === true) {
+//       return next(HttpError(400, "Verification has already been passed"));
+//     }
 
-    await Mail.sendMail({
-      to: email,
-      from: "aleksander.paluc@wp.pl",
-      subject: "Confirm your account!",
-      html: `To confirm your email,please click on the <a href="http://localhost:3000/users/verify/${verificationToken}">link</a>`,
-      text: `To confirm your email please open the link http://localhost:3000/users/verify/${verificationToken}`,
-    });
+//     await Mail.sendMail({
+//       to: email,
+//       from: "aleksander.paluc@wp.pl",
+//       subject: "Confirm your account!",
+//       html: `To confirm your email,please click on the <a href="http://localhost:3000/users/verify/${verificationToken}">link</a>`,
+//       text: `To confirm your email please open the link http://localhost:3000/users/verify/${verificationToken}`,
+//     });
 
-    res.status(201).json({ message: " Verification email sent" });
-  } catch (error) {
-    next(error);
-  }
-};
+//     res.status(201).json({ message: " Verification email sent" });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
 
 export const sendResetMail = async (req, res, next) => {
   try {
@@ -386,21 +419,23 @@ export const sendResetMail = async (req, res, next) => {
 };
 
 export const changePassword = async (req, res, next) => {
-
-
   try {
     const { verificationToken, password } = req.body;
 
     // Перевірка наявності всіх необхідних полів
     if (!verificationToken || !password) {
-      return res.status(400).send({ message: "Reset token and password are required" });
+      return res
+        .status(400)
+        .send({ message: "verification token and password are required" });
     }
 
     // Пошук користувача за токеном
     const user = await User.findOne({ verificationToken });
 
     if (!user) {
-      return res.status(404).send({ message: "Invalid or expired reset token" });
+      return res
+        .status(404)
+        .send({ message: "Invalid or expired reset token" });
     }
 
     // Хешування нового пароля

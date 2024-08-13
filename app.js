@@ -1,23 +1,30 @@
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
-import "./routes/db.js";
-import path from "node:path"
+import path from "node:path";
+import cookieParser from "cookie-parser";
 
+import "./routes/db.js";
 import contactsRouter from "./routes/contactsRouter.js";
 import usersRouter from "./routes/usersRouter.js";
 import { auth } from "./middlewares/auth.js";
 
 const app = express();
 
+const corsOptions = {
+  origin: "http://localhost:5173",
+  credentials: true,
+};
+
 app.use(morgan("tiny"));
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/contacts", auth, contactsRouter);
 app.use("/api/users", usersRouter);
 
-app.use("/avatars", express.static(path.resolve("public/avatars")))
+app.use("/avatars", express.static(path.resolve("public/avatars")));
 
 app.use((_, res) => {
   res.status(404).json({ message: "Route not found" });
