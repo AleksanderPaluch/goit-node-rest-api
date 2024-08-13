@@ -297,12 +297,12 @@ export const sendResetMail = async (req, res, next) => {
       );
     }
     const emailToLowerCase = email.toLowerCase();
-    const resetToken = crypto.randomUUID();
+    const verificationToken = crypto.randomUUID();
 
     await User.findByIdAndUpdate(
       user._id,
       {
-        resetToken,
+        verificationToken,
       },
       { new: true }
     );
@@ -368,7 +368,7 @@ export const sendResetMail = async (req, res, next) => {
     <div class="content">
       <p>Hello,</p>
       <p>We received a request to reset the password for your account. Please click the button below to reset your password:</p>
-      <p><a href="http://localhost:5173/reset-password/${resetToken}" class="button">Reset Password</a></p>
+      <p><a href="http://localhost:5173/reset-password/${verificationToken}" class="button">Reset Password</a></p>
       <p>If you did not request a password reset, please ignore this email.</p>
     </div>
     <div class="footer">
@@ -386,16 +386,18 @@ export const sendResetMail = async (req, res, next) => {
 };
 
 export const changePassword = async (req, res, next) => {
+
+
   try {
-    const { resetToken, password } = req.body;
+    const { verificationToken, password } = req.body;
 
     // Перевірка наявності всіх необхідних полів
-    if (!resetToken || !password) {
+    if (!verificationToken || !password) {
       return res.status(400).send({ message: "Reset token and password are required" });
     }
 
     // Пошук користувача за токеном
-    const user = await User.findOne({ resetToken });
+    const user = await User.findOne({ verificationToken });
 
     if (!user) {
       return res.status(404).send({ message: "Invalid or expired reset token" });
@@ -407,7 +409,7 @@ export const changePassword = async (req, res, next) => {
     // Оновлення пароля та видалення токена
     await User.findByIdAndUpdate(
       user._id,
-      { password: passwordHash, resetToken: null },
+      { password: passwordHash, verificationToken: null },
       { new: true }
     );
 
