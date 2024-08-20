@@ -192,7 +192,6 @@ export const logoutUser = async (req, res, next) => {
 export const refreshAccess = async (req, res, next) => {
   try {
     const { refreshToken } = req.cookies;
-    console.log(refreshToken);
 
     if (!refreshToken) {
       return res.status(401).json({ message: "Refresh token not found" });
@@ -223,46 +222,41 @@ export const refreshAccess = async (req, res, next) => {
 };
 
 export const checkCurrentUser = async (req, res, next) => {
+  const { refreshToken } = req.cookies;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh token not found" });
+  }
+
   try {
-    const user = await User.findById(req.user.id);
-    if (user === null) {
-      throw HttpError(401);
+    const userData = tokenServices.validateRefreshToken(refreshToken);
+    if (!userData) {
+      return res.status(401).json({ message: "Invalid refresh token" });
     }
 
-    const { email } = user;
+    const user = await User.findById(userData.id);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
 
-    res.status(200).send({
-      email,
+    // Якщо користувач знайдений, повертаємо його дані
+    return res.status(200).send({
+      user: {
+        email: user.email,
+        name: user.name,
+        gender: user.gender,
+        weight: user.weight,
+        timeActivity: user.timeActivity,
+        dailyNorma: user.dailyNorma,
+        avatarURL: user.avatarURL,
+      },
     });
   } catch (error) {
     next(error);
   }
 };
 
-export const changeAvatar = async (req, res, next) => {
-  try {
-    if (!req.file) {
-      throw HttpError(400, "File not found");
-    }
 
-    const publicDirectory = path.resolve("public/avatars", req.file.filename);
-
-    await fs.rename(req.file.path, publicDirectory);
-
-    const avatar = await jimp.read(publicDirectory);
-    await avatar.resize(250, 250).writeAsync(publicDirectory);
-
-    const user = await User.findByIdAndUpdate(
-      req.user.id,
-      { avatarURL: `/avatars/${req.file.filename}` },
-      { new: true }
-    );
-
-    res.send({ avatarURL: `/avatars/${req.file.filename}` });
-  } catch (error) {
-    next(error);
-  }
-};
 
 export const verifyEmail = async (req, res, next) => {
   try {
@@ -457,5 +451,86 @@ export const changePassword = async (req, res, next) => {
   } catch (error) {
     console.error("Error changing password:", error); // Логування помилки
     next(error); // Передача помилки в middleware обробки помилок
+  }
+};
+
+export const updateUser = async (req, res, next) => {
+  const { refreshToken } = req.cookies;
+  const update = req.body;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh token not found" });
+  }
+
+  try {
+    const userData = tokenServices.validateRefreshToken(refreshToken);
+    if (!userData) {
+      return res.status(401).json({ message: "Invalid refresh token" });
+    }
+
+    const user = await User.findById(userData.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userData.id,
+      {
+        email: update.email,
+        name: update.name,
+        gender: update.gender,
+        weight: update.weight,
+        timeActivity: update.activeTime,
+        dailyNorma: update.water * 1000,
+      },
+      { new: true } // This option returns the updated document
+    );
+
+    return res
+      .status(200)
+      .json({ message: "User updated successfully", user: updatedUser });
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+};
+
+export const getTotalUsers = async (req, res, next) => {
+  try {
+    const totalUsers = await User.countDocuments();
+
+    return res.status(200).json({ totalUsers });
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+};
+
+
+export const changeAvatar = async (req, res, next) => {
+
+  console.log("here");
+
+  try {
+    if (!req.file) {
+      throw HttpError(400, "File not found");
+    }
+
+    const publicDirectory = path.resolve("public/avatars", req.file.filename);
+
+    await fs.rename(req.file.path, publicDirectory);
+
+    const avatar = await jimp.read(publicDirectory);
+    await avatar.resize(250, 250).writeAsync(publicDirectory);
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { avatarURL: `/avatars/${req.file.filename}` },
+      { new: true }
+    );
+
+    res.send({ avatarURL: `/avatars/${req.file.filename}` });
+  } catch (error) {
+    next(error);
   }
 };

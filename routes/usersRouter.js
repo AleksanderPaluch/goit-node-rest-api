@@ -1,5 +1,5 @@
 import express from "express";
-import { registerUser, loginUser, logoutUser, refreshAccess, checkCurrentUser, changeAvatar, verifyEmail, sendResetMail, changePassword } from "../controllers/usersControllers.js";
+import { registerUser, loginUser, logoutUser, refreshAccess, checkCurrentUser, changeAvatar, verifyEmail, sendResetMail, changePassword, updateUser, getTotalUsers } from "../controllers/usersControllers.js";
 import { auth } from "../middlewares/auth.js";
 import upload from "../middlewares/upload.js"
 
@@ -13,9 +13,10 @@ router.get("/verify/:verificationToken", verifyEmail)
 router.post("/reset-mail", sendResetMail)
 router.post("/change-password", changePassword)
 router.post("/token-refresh", refreshAccess)
+router.get("/current", checkCurrentUser)
+router.patch("/update", updateUser)
+router.get("/total", getTotalUsers)
 
-
-router.get("/current", auth, checkCurrentUser)
-router.patch("/avatars", auth, upload.single("avatar"), changeAvatar)
+router.patch("/avatars",  upload.single("avatar"), changeAvatar)
 
 export default router;
