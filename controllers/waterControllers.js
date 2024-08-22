@@ -1,9 +1,9 @@
 import HttpError from "../helpers/HttpError.js";
 import {
-  createContactSchema,
-  updateContactSchema,
-} from "../schemas/contactsSchemas.js";
-import Contact from "../models/contacts.js";
+  createWaterSchema,
+ 
+} from "../schemas/waterSchema.js";
+import Water from "../models/water.js";
 
 export const getWaterDaily = async (req, res, next) => {
   try {
