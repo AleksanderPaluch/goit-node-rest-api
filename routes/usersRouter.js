@@ -16,7 +16,7 @@ router.post("/token-refresh", refreshAccess)
 router.get("/current", checkCurrentUser)
 router.patch("/update", updateUser)
 router.get("/total", getTotalUsers)
-
 router.patch("/avatars",  upload.single("avatar"), changeAvatar)
+
 
 export default router;

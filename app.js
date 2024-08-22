@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import "./routes/db.js";
 import contactsRouter from "./routes/contactsRouter.js";
 import usersRouter from "./routes/usersRouter.js";
+import waterRouter from "./routes/waterRouter.js";
 import { auth } from "./middlewares/auth.js";
 
 const app = express();
@@ -22,8 +23,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/contacts", auth, contactsRouter);
-app.use("/api/users", usersRouter);
-
+app.use("/users", usersRouter);
+app.use("/water", waterRouter);
 app.use("/avatars", express.static(path.resolve("public/avatars")));
 
 app.use((_, res) => {
