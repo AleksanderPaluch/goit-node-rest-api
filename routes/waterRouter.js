@@ -9,7 +9,7 @@ const router = express.Router();
 router.get("/get", getWaterDaily)
 router.post("/add", addWaterAmount)
 router.patch("/edit", editWaterAmount)
-router.delete("/remove", removeWaterAmount)
+router.delete("/remove/:id", removeWaterAmount)
 
 
 

@@ -27,8 +27,10 @@ export const removeToken = async (refreshToken) => {
 export const validateRefreshToken = (refreshToken) => {
   try {
     const userData = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    
     return userData;
   } catch (e) {
+   
     return null;
   }
 };

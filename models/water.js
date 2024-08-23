@@ -6,11 +6,24 @@ const waterSchema = mongoose.Schema(
         type: String,
         required: true,
       },
+  
+      amount: {
+        type: Number,
+        required: true,
+      },
       date: {
         type: String,
         required: true,
       },
-      amount: {
+      day: {
+        type: Number,
+        required: true,
+      },
+      month: {
+        type: Number,
+        required: true,
+      },
+      year: {
         type: Number,
         required: true,
       },

@@ -106,13 +106,7 @@ export const registerUser = async (req, res, next) => {
     </html>
   `,
     });
-    // await Mail.sendMail({
-    //   to: emailToLowerCase,
-    //   from: "aleksander.paluc@wp.pl",
-    //   subject: "Confirm your account!",
-    //   html: `To confirm your email,please click on the <a href="http://localhost:3000/users/verify/${verificationToken}">link</a>`,
-    //   // html: `To confirm your email,please click on the <a href="http://localhost:5173/users/verify/${verificationToken}">link</a>`,
-    // });
+ 
 
     await User.create({
       email,
@@ -134,7 +128,7 @@ export const registerUser = async (req, res, next) => {
 
 export const loginUser = async (req, res, next) => {
   try {
-    console.log(req.body);
+    
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
