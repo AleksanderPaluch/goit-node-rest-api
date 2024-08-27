@@ -95,7 +95,7 @@ export const registerUser = async (req, res, next) => {
         <div class="content">
           <p>Hello,</p>
           <p>Thank you for registering with our service. Please click the button below to confirm your email address:</p>
-          <p><a href="http://localhost:3000/api/users/verify/${verificationToken}" class="button">Confirm Email</a></p>
+          <p><a href="http://localhost:3000/users/verify/${verificationToken}" class="button">Confirm Email</a></p>
           <p>If you did not create an account, please ignore this email.</p>
         </div>
         <div class="footer">
