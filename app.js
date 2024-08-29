@@ -5,7 +5,7 @@ import path from "node:path";
 import cookieParser from "cookie-parser";
 
 import "./routes/db.js";
-import contactsRouter from "./routes/contactsRouter.js";
+
 import usersRouter from "./routes/usersRouter.js";
 import waterRouter from "./routes/waterRouter.js";
 import { auth } from "./middlewares/auth.js";
@@ -21,8 +21,6 @@ app.use(morgan("tiny"));
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
-
-app.use("/contacts", auth, contactsRouter);
 app.use("/users", usersRouter);
 app.use("/water", waterRouter);
 app.use("/avatars", express.static(path.resolve("public/avatars")));
