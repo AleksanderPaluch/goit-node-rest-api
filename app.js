@@ -3,12 +3,17 @@ import morgan from "morgan";
 import cors from "cors";
 import path from "node:path";
 import cookieParser from "cookie-parser";
+import chalk from "chalk";
 
 import "./routes/db.js";
 
 import usersRouter from "./routes/usersRouter.js";
 import waterRouter from "./routes/waterRouter.js";
 import { auth } from "./middlewares/auth.js";
+
+// Updated chalk usage
+const errorMsg = chalk.bgWhite.redBright;
+const successMsg = chalk.bgGreen.white;
 
 const app = express();
 
@@ -25,15 +30,20 @@ app.use("/users", usersRouter);
 app.use("/water", waterRouter);
 app.use("/avatars", express.static(path.resolve("public/avatars")));
 
+// Handle 404 - Route not found
 app.use((_, res) => {
+  console.log(errorMsg("Route not found - 404"));
   res.status(404).json({ message: "Route not found" });
 });
 
+// Global error handler
 app.use((err, req, res, next) => {
   const { status = 500, message = "Server error" } = err;
+  console.log(errorMsg(`Error: ${message}, Status: ${status}`));
   return res.status(status).json({ message });
 });
 
-app.listen(3000, () => {
-  console.log("Server is running. Use our API on port: 3000");
+const port = process.env.PORT 
+app.listen(port, () => {
+  console.log(successMsg(`Server is running. Use our API on port: ${port}`));
 });
