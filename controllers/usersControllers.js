@@ -95,7 +95,7 @@ export const registerUser = async (req, res, next) => {
         <div class="content">
           <p>Hello,</p>
           <p>Thank you for registering with our service. Please click the button below to confirm your email address:</p>
-          <p><a href="http://localhost:3000/users/verify/${verificationToken}" class="button">Confirm Email</a></p>
+          <p><a href="https://water-tracker-app-3d8d0b109609.herokuapp.com/users/verify/${verificationToken}" class="button">Confirm Email</a></p>
           <p>If you did not create an account, please ignore this email.</p>
         </div>
         <div class="footer">
@@ -266,7 +266,7 @@ export const verifyEmail = async (req, res, next) => {
       verificationToken: null,
     });
 
-    res.redirect("http://localhost:5173/signin");
+    res.redirect("https://water-tracker-app.vercel.app");
   } catch (error) {
     next(error);
   }
