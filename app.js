@@ -18,7 +18,7 @@ const successMsg = chalk.bgGreen.white;
 const app = express();
 
 const corsOptions = {
-  origin: "https://water-tracker-app.vercel.app/",
+  origin: "https://water-tracker-app.vercel.app",
   credentials: true,
 };
 
