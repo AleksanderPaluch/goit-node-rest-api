@@ -9,7 +9,7 @@ import "./routes/db.js";
 
 import usersRouter from "./routes/usersRouter.js";
 import waterRouter from "./routes/waterRouter.js";
-import { auth } from "./middlewares/auth.js";
+
 
 // Updated chalk usage
 const errorMsg = chalk.bgWhite.redBright;
@@ -18,7 +18,7 @@ const successMsg = chalk.bgGreen.white;
 const app = express();
 
 const corsOptions = {
-  origin: "http://localhost:5173",
+  origin: "https://water-tracker-app-3d8d0b109609.herokuapp.com/",
   credentials: true,
 };
 
