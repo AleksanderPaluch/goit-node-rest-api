@@ -12,10 +12,10 @@ import crypto from "node:crypto";
 const cookieConfig = {
   maxAge: 30 * 24 * 60 * 60 * 1000,
   httpOnly: true,
-  // sameSite: "none",
-  // secure: true,
-  sameSite: "lax", // замінено на 'lax' для локальної розробки
-  secure: false, // змінено на false для локальної розробки без HTTPSs
+  sameSite: "none",
+  secure: true,
+  // sameSite: "lax", // замінено на 'lax' для локальної розробки
+  // secure: false, // змінено на false для локальної розробки без HTTPSs
 };
 
 export const registerUser = async (req, res, next) => {
