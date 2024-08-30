@@ -526,7 +526,7 @@ export const changeAvatar = async (req, res, next) => {
 
     await User.findByIdAndUpdate(
       userData.id,
-      { avatarURL: `http://localhost:3000/avatars/${req.file.filename}` },
+      { avatarURL: `https://water-tracker-app-3d8d0b109609.herokuapp.com/avatars/${req.file.filename}` },
       { new: true }
     );
   
