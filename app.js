@@ -43,7 +43,7 @@ app.use((err, req, res, next) => {
   return res.status(status).json({ message });
 });
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT 
 app.listen(port, () => {
   console.log(successMsg(`Server is running. Use our API on port: ${port}`));
 });
