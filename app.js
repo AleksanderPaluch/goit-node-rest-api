@@ -9,7 +9,7 @@ import "./routes/db.js";
 
 import usersRouter from "./routes/usersRouter.js";
 import waterRouter from "./routes/waterRouter.js";
-import { auth } from "./middlewares/auth.js";
+
 
 // Updated chalk usage
 const errorMsg = chalk.bgWhite.redBright;
@@ -18,7 +18,8 @@ const successMsg = chalk.bgGreen.white;
 const app = express();
 
 const corsOptions = {
-  origin: "https://water-tracker-app.vercel.app",
+  // origin: "https://water-tracker-app.vercel.app",
+  origin: "https://localhost:3000",
   credentials: true,
 };
 
@@ -43,7 +44,7 @@ app.use((err, req, res, next) => {
   return res.status(status).json({ message });
 });
 
-const port = process.env.PORT 
+const port = process.env.PORT || 3000
 app.listen(port, () => {
   console.log(successMsg(`Server is running. Use our API on port: ${port}`));
 });

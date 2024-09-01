@@ -11,11 +11,11 @@ import crypto from "node:crypto";
 
 const cookieConfig = {
   maxAge: 30 * 24 * 60 * 60 * 1000,
-  httpOnly: true,
-  sameSite: "none",
-  secure: true,
-  // sameSite: "lax", // замінено на 'lax' для локальної розробки
-  // secure: false, // змінено на false для локальної розробки без HTTPSs
+  // httpOnly: true,
+  // sameSite: "none",
+  // secure: true,
+  sameSite: "lax", // замінено на 'lax' для локальної розробки
+  secure: false, // змінено на false для локальної розробки без HTTPSs
 };
 
 export const registerUser = async (req, res, next) => {
@@ -95,7 +95,8 @@ export const registerUser = async (req, res, next) => {
         <div class="content">
           <p>Hello,</p>
           <p>Thank you for registering with our service. Please click the button below to confirm your email address:</p>
-          <p><a href="https://water-tracker-app-3d8d0b109609.herokuapp.com/users/verify/${verificationToken}" class="button">Confirm Email</a></p>
+         { <p><a href="https://water-tracker-app-3d8d0b109609.herokuapp.com/users/verify/${verificationToken}" class="button">Confirm Email</a></p>}
+               <p><a href="https://localhost:3000/users/verify/${verificationToken}" class="button">Confirm Email</a></p>
           <p>If you did not create an account, please ignore this email.</p>
         </div>
         <div class="footer">
@@ -106,7 +107,6 @@ export const registerUser = async (req, res, next) => {
     </html>
   `,
     });
- 
 
     await User.create({
       email,
@@ -128,7 +128,6 @@ export const registerUser = async (req, res, next) => {
 
 export const loginUser = async (req, res, next) => {
   try {
-    
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
@@ -266,7 +265,8 @@ export const verifyEmail = async (req, res, next) => {
       verificationToken: null,
     });
 
-    res.redirect("https://water-tracker-app.vercel.app");
+    res.redirect("https://localhost:5173/signin");
+    // res.redirect("https://water-tracker-app.vercel.app");
   } catch (error) {
     next(error);
   }
@@ -507,11 +507,10 @@ export const changeAvatar = async (req, res, next) => {
   }
 
   if (!req.file) {
-        throw HttpError(400, "File not found");
-      }
+    throw HttpError(400, "File not found");
+  }
 
   try {
-
     const publicDirectory = path.resolve("public/avatars", req.file.filename);
 
     await fs.rename(req.file.path, publicDirectory);
@@ -526,15 +525,14 @@ export const changeAvatar = async (req, res, next) => {
 
     await User.findByIdAndUpdate(
       userData.id,
-      { avatarURL: `https://water-tracker-app-3d8d0b109609.herokuapp.com/avatars/${req.file.filename}` },
+      // { avatarURL: `https://water-tracker-app-3d8d0b109609.herokuapp.com/avatars/${req.file.filename}` }
+      { avatarURL: `https://localhost:3000/avatars/${req.file.filename}` },
       { new: true }
     );
-  
- 
-  return   res.status(201).send("avatar changed successfully");
+
+    return res.status(201).send("avatar changed successfully");
   } catch (error) {
     console.log(error);
-    next(error)
+    next(error);
   }
-
 };
