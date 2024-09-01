@@ -19,7 +19,7 @@ const app = express();
 
 const corsOptions = {
   // origin: "https://water-tracker-app.vercel.app",
-  origin: "https://localhost:3000",
+  origin: "http://localhost:5173",
   credentials: true,
 };
 
@@ -44,7 +44,7 @@ app.use((err, req, res, next) => {
   return res.status(status).json({ message });
 });
 
-const port = process.env.PORT || 3000
+const port =  3000
 app.listen(port, () => {
   console.log(successMsg(`Server is running. Use our API on port: ${port}`));
 });
