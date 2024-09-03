@@ -19,7 +19,7 @@ const app = express();
 
 const corsOptions = {
   // origin: "https://water-tracker-app.vercel.app",
-  origin: "http://localhost:5173",
+  origin: ["http://localhost:5173"],
   credentials: true,
 };
 

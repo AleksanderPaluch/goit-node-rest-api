@@ -2,6 +2,8 @@ import express from "express";
 import { registerUser, loginUser, logoutUser, refreshAccess, checkCurrentUser, changeAvatar, verifyEmail, sendResetMail, changePassword, updateUser, getTotalUsers } from "../controllers/usersControllers.js";
 import { auth } from "../middlewares/auth.js";
 import upload from "../middlewares/upload.js"
+import { googleAuth, googleAuthRedirect } from "../controllers/googleControllers.js";
+
 
 
 const router = express.Router();
@@ -17,6 +19,8 @@ router.get("/current", checkCurrentUser)
 router.patch("/update", updateUser)
 router.get("/total", getTotalUsers)
 router.patch("/avatars",  upload.single("avatar"), changeAvatar)
+router.get("/google", googleAuth)
+router.get("/google-redirect", googleAuthRedirect)
 
 
 export default router;

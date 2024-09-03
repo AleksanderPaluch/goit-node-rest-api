@@ -9,6 +9,7 @@ import jimp from "jimp";
 import Mail from "../helpers/verifyEmail.js";
 import crypto from "node:crypto";
 
+
 const cookieConfig = {
   maxAge: 30 * 24 * 60 * 60 * 1000,
   // httpOnly: true,
@@ -536,3 +537,5 @@ export const changeAvatar = async (req, res, next) => {
     next(error);
   }
 };
+
+

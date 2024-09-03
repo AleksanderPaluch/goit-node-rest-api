@@ -4,7 +4,9 @@ const userSchema = mongoose.Schema(
   {
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: function () {
+        return !this.googleId; // Пароль потрібен тільки для не-OAuth користувачів
+      },
     },
     email: {
       type: String,
@@ -50,7 +52,9 @@ const userSchema = mongoose.Schema(
     },
     verificationToken: {
       type: String,
-      required: [true, "Verify token is required"],
+      required: function () {
+        return !this.googleId; // VerificationToken потрібен тільки для не-OAuth користувачів
+      },
     },
   },
 
