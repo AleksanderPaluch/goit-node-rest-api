@@ -2,12 +2,11 @@ import nodemailer from "nodemailer";
 
 // Create a transport object with SMTP server details
 const transporter = nodemailer.createTransport({
-  host: "sandbox.smtp.mailtrap.io",
-  port: 2525,
-  auth: {
-    user: process.env.MAILTRAP_USERNAME,
-    pass: process.env.MAILTRAP_PASSWORD,
-  },
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  login: process.env.MAIL_LOGIN,
+  password: process.env.MAIL_PASSWORD
+  
 });
 
 function sendMail(message) {

@@ -8,7 +8,7 @@ import gravatar from "gravatar";
 import jimp from "jimp";
 import Mail from "../helpers/verifyEmail.js";
 import crypto from "node:crypto";
-
+import axios from "axios"; // Додаємо axios для роботи з API
 
 const cookieConfig = {
   maxAge: 30 * 24 * 60 * 60 * 1000,
@@ -35,80 +35,31 @@ export const registerUser = async (req, res, next) => {
     const gravatarImg = gravatar.url(emailToLowerCase);
     const verificationToken = crypto.randomUUID();
 
-    await Mail.sendMail({
-      to: emailToLowerCase,
-      from: "AquaTrack.com",
-      subject: "Confirm your account!",
-      html: `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <style>
-        body {
-          font-family: Arial, sans-serif;
-          background-color: #f4f4f4;
-          margin: 0;
-          padding: 0;
-        }
-        .container {
-          max-width: 600px;
-          margin: 0 auto;
-          background-color: #ffffff;
-          padding: 20px;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-          background-color: #4CAF50;
-          color: #ffffff;
-          padding: 10px 0;
-          text-align: center;
-          border-radius: 8px 8px 0 0;
-        }
-        .content {
-          margin: 20px 0;
-          line-height: 1.6;
-        }
-        .button {
-          display: inline-block;
-          padding: 10px 20px;
-          font-size: 16px;
-          color: #ffffff;
-          background-color: #4CAF50;
-          text-decoration: none;
-          border-radius: 5px;
-        }
-        .footer {
-          margin-top: 20px;
-          text-align: center;
-          color: #777777;
-          font-size: 12px;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>Confirm Your Account</h1>
-        </div>
-        <div class="content">
-          <p>Hello,</p>
-          <p>Thank you for registering with our service. Please click the button below to confirm your email address:</p>
-         { <p><a href="https://water-tracker-app-3d8d0b109609.herokuapp.com/users/verify/${verificationToken}" class="button">Confirm Email</a></p>}
-               <p><a href="https://localhost:3000/users/verify/${verificationToken}" class="button">Confirm Email</a></p>
-          <p>If you did not create an account, please ignore this email.</p>
-        </div>
-        <div class="footer">
-          <p>&copy; 2024 AquaTrack. All rights reserved.</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `,
+    // Готуємо дані для відправки листа через Brevo API
+    const brevoData = {
+      sender: { name: "AquaTrack", email: "aleksanderpaluch52@gmail.com" },
+      to: [{ email: emailToLowerCase }],
+      templateId: 1, // Замінити на ID твого шаблону
+      params: {
+ 
+
+        CONFIRMATION_LINK: `http://localhost:3000/users/verify/${verificationToken}`, // Твоє посилання для підтвердження
+        /// https://water-tracker-app-3d8d0b109609.herokuapp.com/users/verify/${verificationToken} ///
+      },
+    };
+
+    console.log(brevoData);
+
+    // Відправляємо лист через Brevo API
+    await axios.post("https://api.brevo.com/v3/smtp/email", brevoData, {
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        "api-key": process.env.MAIL_API_KEY, // Встав свій API-ключ з Brevo
+      },
     });
 
+    // Створюємо нового користувача в базі даних
     await User.create({
       email,
       password: passwordHash,
@@ -116,6 +67,7 @@ export const registerUser = async (req, res, next) => {
       verificationToken,
     });
 
+    // Відправляємо відповідь з даними користувача
     res.status(201).send({
       user: {
         email,
@@ -126,7 +78,6 @@ export const registerUser = async (req, res, next) => {
     next(error);
   }
 };
-
 
 export const loginUser = async (req, res, next) => {
   try {
@@ -267,7 +218,7 @@ export const verifyEmail = async (req, res, next) => {
       verificationToken: null,
     });
 
-    res.redirect("https://localhost:5173/signin");
+    res.redirect("http://localhost:5173/signin");
     // res.redirect("https://water-tracker-app.vercel.app");
   } catch (error) {
     next(error);
@@ -312,6 +263,8 @@ export const verifyEmail = async (req, res, next) => {
 //   }
 // };
 
+
+
 export const sendResetMail = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -326,6 +279,8 @@ export const sendResetMail = async (req, res, next) => {
     const emailToLowerCase = email.toLowerCase();
     const verificationToken = crypto.randomUUID();
 
+    console.log(emailToLowerCase);
+
     await User.findByIdAndUpdate(
       user._id,
       {
@@ -334,79 +289,27 @@ export const sendResetMail = async (req, res, next) => {
       { new: true }
     );
 
-    await Mail.sendMail({
-      to: emailToLowerCase,
-      from: "AquaTrack.com",
-      subject: "Reset Your Password",
-      html: `
-  <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      background-color: #ffffff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    .header {
-      background-color: #4CAF50;
-      color: #ffffff;
-      padding: 10px 0;
-      text-align: center;
-      border-radius: 8px 8px 0 0;
-    }
-    .content {
-      margin: 20px 0;
-      line-height: 1.6;
-    }
-    .button {
-      display: inline-block;
-      padding: 10px 20px;
-      font-size: 16px;
-      color: #ffffff;
-      background-color: #4CAF50;
-      text-decoration: none;
-      border-radius: 5px;
-    }
-    .footer {
-      margin-top: 20px;
-      text-align: center;
-      color: #777777;
-      font-size: 12px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>Reset Your Password</h1>
-    </div>
-    <div class="content">
-      <p>Hello,</p>
-      <p>We received a request to reset the password for your account. Please click the button below to reset your password:</p>
-      <p><a href="http://localhost:5173/reset-password/${verificationToken}" class="button">Reset Password</a></p>
-      <p>If you did not request a password reset, please ignore this email.</p>
-    </div>
-    <div class="footer">
-      <p>&copy; 2024 AquaTrack. All rights reserved.</p>
-    </div>
-  </div>
-</body>
-</html>`,
+    const brevoData = {
+      sender: { name: "AquaTrack", email: "aleksanderpaluch52@gmail.com" },
+      to: [{ email: emailToLowerCase }],
+      templateId: 2, // Замінити на ID твого шаблону
+      params: {
+ 
+
+        RESET_LINK: `http://localhost:5173/reset-password/${verificationToken}`, 
+        // VERCEL //
+      },
+    };
+
+    await axios.post("https://api.brevo.com/v3/smtp/email", brevoData, {
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        "api-key": process.env.MAIL_API_KEY, // Встав свій API-ключ з Brevo
+      },
     });
 
-    res.status(200).json({ message: " reset email sent" });
+    res.status(200).json({ message: " reset email has been sent" });
   } catch (error) {
     next(error);
   }
@@ -528,7 +431,7 @@ export const changeAvatar = async (req, res, next) => {
     await User.findByIdAndUpdate(
       userData.id,
       // { avatarURL: `https://water-tracker-app-3d8d0b109609.herokuapp.com/avatars/${req.file.filename}` }
-      { avatarURL: `https://localhost:3000/avatars/${req.file.filename}` },
+      { avatarURL: `http://localhost:3000/avatars/${req.file.filename}` },
       { new: true }
     );
 
@@ -538,5 +441,3 @@ export const changeAvatar = async (req, res, next) => {
     next(error);
   }
 };
-
-
