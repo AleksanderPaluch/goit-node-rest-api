@@ -83,7 +83,7 @@ export const googleAuthRedirect = async (req, res, next) => {
     // Відправляємо токен клієнту або редіректимо на потрібну сторінку
    
     res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: true });
-    res.redirect(`http://localhost:5173/signin?token=${token}`);
+    res.redirect(`https://water-tracker-app.vercel.app/signin?token=${token}`);
   } catch (error) {
     console.error("Помилка авторизації:", error);
     next(error);

@@ -6,17 +6,16 @@ import * as tokenServices from "../services/token-services.js";
 import path from "node:path";
 import gravatar from "gravatar";
 import jimp from "jimp";
-import Mail from "../helpers/verifyEmail.js";
 import crypto from "node:crypto";
 import axios from "axios"; // Додаємо axios для роботи з API
 
 const cookieConfig = {
   maxAge: 30 * 24 * 60 * 60 * 1000,
-  // httpOnly: true,
-  // sameSite: "none",
-  // secure: true,
-  sameSite: "lax", // замінено на 'lax' для локальної розробки
-  secure: false, // змінено на false для локальної розробки без HTTPSs
+  httpOnly: true,
+  sameSite: "none",
+  secure: true,
+  // sameSite: "lax", // замінено на 'lax' для локальної розробки
+  // secure: false, // змінено на false для локальної розробки без HTTPSs
 };
 
 export const registerUser = async (req, res, next) => {
@@ -41,10 +40,7 @@ export const registerUser = async (req, res, next) => {
       to: [{ email: emailToLowerCase }],
       templateId: 1, // Замінити на ID твого шаблону
       params: {
- 
-
-        CONFIRMATION_LINK: `http://localhost:3000/users/verify/${verificationToken}`, // Твоє посилання для підтвердження
-        /// https://water-tracker-app-3d8d0b109609.herokuapp.com/users/verify/${verificationToken} ///
+        CONFIRMATION_LINK: `https://water-tracker-app-3d8d0b109609.herokuapp.com/users/verify/${verificationToken}`, // Твоє посилання для підтвердження
       },
     };
 
@@ -218,50 +214,12 @@ export const verifyEmail = async (req, res, next) => {
       verificationToken: null,
     });
 
-    res.redirect("http://localhost:5173/signin");
-    // res.redirect("https://water-tracker-app.vercel.app");
+    res.redirect("https://water-tracker-app.vercel.app/signin");
+   
   } catch (error) {
     next(error);
   }
 };
-
-// export const resendVerify = async (req, res, next) => {
-//   try {
-//     const { email } = req.body;
-
-//     if (!email) {
-//       res.status(400).send({ message: "missing required field email" });
-//     }
-
-//     const verificationToken = crypto.randomUUID();
-
-//     const user = await User.findOneAndUpdate(
-//       { email },
-//       { verificationToken },
-//       { new: true }
-//     );
-
-//     if (!user) {
-//       return next(HttpError(404, "User not found"));
-//     }
-
-//     if (user.verify === true) {
-//       return next(HttpError(400, "Verification has already been passed"));
-//     }
-
-//     await Mail.sendMail({
-//       to: email,
-//       from: "aleksander.paluc@wp.pl",
-//       subject: "Confirm your account!",
-//       html: `To confirm your email,please click on the <a href="http://localhost:3000/users/verify/${verificationToken}">link</a>`,
-//       text: `To confirm your email please open the link http://localhost:3000/users/verify/${verificationToken}`,
-//     });
-
-//     res.status(201).json({ message: " Verification email sent" });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
 
 
 
@@ -294,9 +252,7 @@ export const sendResetMail = async (req, res, next) => {
       to: [{ email: emailToLowerCase }],
       templateId: 2, // Замінити на ID твого шаблону
       params: {
- 
-
-        RESET_LINK: `http://localhost:5173/reset-password/${verificationToken}`, 
+        RESET_LINK: `https://water-tracker-app.vercel.app/reset-password/${verificationToken}`,
         // VERCEL //
       },
     };
@@ -430,8 +386,10 @@ export const changeAvatar = async (req, res, next) => {
 
     await User.findByIdAndUpdate(
       userData.id,
-      // { avatarURL: `https://water-tracker-app-3d8d0b109609.herokuapp.com/avatars/${req.file.filename}` }
-      { avatarURL: `http://localhost:3000/avatars/${req.file.filename}` },
+      {
+        avatarURL: `https://water-tracker-app-3d8d0b109609.herokuapp.com/avatars/${req.file.filename}`,
+      },
+     
       { new: true }
     );
 
