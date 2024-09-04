@@ -1,6 +1,6 @@
 import { URL } from "url";
 import queryString from "query-string";
-import { response } from "express";
+
 import axios from "axios";
 import User from "../models/users.js";
 import * as tokenServices from "../services/token-services.js";
