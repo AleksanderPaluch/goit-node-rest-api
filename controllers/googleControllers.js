@@ -50,7 +50,12 @@ export const googleAuthRedirect = async (req, res, next) => {
       },
     });
 
-    const { sub: googleId, email, picture: avatarURL, given_name: name } = userData.data;
+    const {
+      sub: googleId,
+      email,
+      picture: avatarURL,
+      given_name: name,
+    } = userData.data;
 
     // Перевіряємо, чи є користувач у базі даних
     let user = await User.findOne({ googleId });
@@ -76,18 +81,36 @@ export const googleAuthRedirect = async (req, res, next) => {
     await User.findByIdAndUpdate(user._id, { token }, { new: true });
 
     // Відправляємо токен клієнту або редіректимо на потрібну сторінку
-    res.status(200).redirect("http://localhost:5173/signin")
+   
+    res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: true });
+    res.redirect(`http://localhost:5173/signin?token=${token}`);
   } catch (error) {
     console.error("Помилка авторизації:", error);
     next(error);
   }
 };
 
+export const googleLogin = async (req, res, next) => {
+  const { refreshToken } = req.cookies;
+  
 
-// id: '117989122758053172226',
-// email: 'piesciejebaljak@gmail.com',
-// verified_email: true,
-// name: 'Aleksander Paluch',
-// given_name: 'Aleksander',
-// family_name: 'Paluch',
-// picture: 'https://lh3.googleusercontent.com/a/ACg8ocInNjyC1DUO3ZuOL4DEi0MmedvCzj-T8FeGV_9HZN8ciKdeXw=s96-c'
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh token not found" });
+  }
+  try {
+    const userData = tokenServices.validateRefreshToken(refreshToken);
+    if (!userData) {
+      return res.status(401).json({ message: "Invalid refresh token" });
+    }
+
+    const user = await User.findById(userData.id);
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+    console.log(user);
+    return res.status(200).send({ user: { email: user.email }, token: user.token} );
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
