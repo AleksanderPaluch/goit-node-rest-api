@@ -91,16 +91,17 @@ export const googleAuthRedirect = async (req, res, next) => {
 };
 
 export const googleLogin = async (req, res, next) => {
-  const { refreshToken } = req.cookies;
+
+  console.log(req.body);
+  const { gToken } = req.body;
+  console.log('token: ', gToken);
   
 
-  if (!refreshToken) {
-    return res.status(401).json({ message: "Refresh token not found" });
-  }
+ 
   try {
-    const userData = tokenServices.validateRefreshToken(refreshToken);
+    const userData = tokenServices.validateAccessToken(gToken);
     if (!userData) {
-      return res.status(401).json({ message: "Invalid refresh token" });
+      return res.status(401).json({ message: "Invalid access token" });
     }
 
     const user = await User.findById(userData.id);
