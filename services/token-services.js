@@ -24,6 +24,17 @@ export const removeToken = async (refreshToken) => {
   return RefreshToken.deleteOne({ refreshToken });
 };
 
+export const validateAccessToken = (accessToken) => {
+  try {
+    const userData = jwt.verify(accessToken, process.env.JWT_SECRET);
+    
+    return userData;
+  } catch (e) {
+   
+    return null;
+  }
+};
+
 export const validateRefreshToken = (refreshToken) => {
   try {
     const userData = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
