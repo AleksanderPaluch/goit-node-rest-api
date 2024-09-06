@@ -5,6 +5,16 @@ import axios from "axios";
 import User from "../models/users.js";
 import * as tokenServices from "../services/token-services.js";
 
+
+const cookieConfig = {
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+  httpOnly: true,
+  sameSite: "none",
+  secure: true,
+  // sameSite: "lax", // замінено на 'lax' для локальної розробки
+  // secure: false, // змінено на false для локальної розробки без HTTPSs
+};
+
 export const googleAuth = async (req, res, next) => {
   const stringifiedParams = queryString.stringify({
     client_id: process.env.GOOGLE_CLIENT_ID,
@@ -82,7 +92,7 @@ export const googleAuthRedirect = async (req, res, next) => {
 
     // Відправляємо токен клієнту або редіректимо на потрібну сторінку
    
-    res.cookie("refreshToken", refreshToken, { httpOnly: true, secure: true });
+    res.cookie("refreshToken", refreshToken, cookieConfig);
     res.redirect(`https://water-tracker-app.vercel.app/signin?token=${token}`);
   } catch (error) {
     console.error("Помилка авторизації:", error);
